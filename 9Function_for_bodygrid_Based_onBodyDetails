@@ -13,3 +13,17 @@ declare @Ratio int =@e.value('(/Fields/BodyData/BodyRow/Ratio)[1]', 'int')
 select @result=COALESCE(@result+',','')+ (concat(a.sName,'|',a.iMasterId))from (select sName,iMasterId from vCore_Product where isnull(ProductType1,0)= isnull(@ProductType,0) and isnull(ProductMake1,0)=isnull(@make,0) and isnull(RPM,0)=isnull(@HP,0) and isnull(Model,0) = isnull(@model,0) and isnull(Ratio,0) =isnull(@Ratio,0))a
 return @result
 end
+---------------------------------------------------
+CREATE  function [dbo].[fCore_Var14] (@e xml)
+returns varchar(max)
+as 
+begin
+declare @result varchar(max)=''
+declare @ProductType int =@e.value('(/Fields/BodyData/BodyRow/ProductType)[1]', 'int')
+if(@ProductType=-1)
+begin
+select @ProductType=0
+end
+select @result=COALESCE(@result+',','')+ (concat(a.sName,'|',a.iMasterId))from(select sName,iMasterId from vCore_Engine where ProductType = @ProductType)a
+return @result
+end
