@@ -1,0 +1,9 @@
+alter function fCore_Var21 (@e xml)
+returns decimal(18,2) 
+as 
+begin
+declare @Result decimal(18,2) = 0.00
+declare @priceMatrix int = @e.value('(/Fields/Header/PriceMatrix)[1]','int')
+select @Result=Rate from vuCore_BenelliSellingPrice_General_Details where iMasterId=@priceMatrix
+return @Result
+end
