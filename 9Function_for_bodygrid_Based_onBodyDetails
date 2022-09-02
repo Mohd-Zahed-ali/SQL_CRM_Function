@@ -27,3 +27,23 @@ end
 select @result=COALESCE(@result+',','')+ (concat(a.sName,'|',a.iMasterId))from(select sName,iMasterId from vCore_Engine where ProductType = @ProductType)a
 return @result
 end
+---------------------------------------------------------------------------------------------------------------------------------------------------
+CREATE  function [dbo].[fCore_Var15] (@e xml)
+returns varchar(max)
+as 
+begin
+declare @result varchar(max)=''
+declare @ProductType int =@e.value('(/Fields/BodyData/BodyRow/ProductType)[1]', 'int')
+declare @make int =@e.value('(/Fields/BodyData/BodyRow/Make)[1]', 'int')
+if(@ProductType=-1)
+begin
+select @ProductType=0
+end
+if(@make=-1)
+begin
+select @make=0
+end
+select @result=COALESCE(@result+',','')+ (concat(a.sName,'|',a.iMasterId))from(select sName,iMasterId from vCore_RPM where ProductType = @ProductType and Make=@make)a
+return @result
+end
+---------------------------------------------------------------------------------------------------------------------------------------------------
