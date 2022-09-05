@@ -1,0 +1,30 @@
+Create Function [dbo].[udv_Timein](@Time int,@location int)
+returns varchar(max)
+begin
+declare @shiftname varchar(max)
+declare @Timein1 int=(select TimeIn from Newshift where ShiftName='Unit 1 General Shift')
+declare @Timein2 int=(select TimeIn from Newshift where ShiftName='General Shift')
+declare @TimeOut1 int=(select TimeOut from Newshift where ShiftName='Unit 1 General Shift')
+declare @TimeOut2 int=(select TimeOut from Newshift where ShiftName='General Shift')
+
+
+		if(@location=2 and @Time between @Timein1 and @TimeOut1)
+		begin
+		select @shiftname=ShiftName from Newshift where 
+		ShiftName='Unit 1 General Shift' and
+		@Time between TimeIn and TimeOut
+		end
+
+		else if ((@location=4 or @location=6) and @Time between @Timein2 and @TimeOut2)
+		begin
+		select @shiftname=ShiftName from Newshift where 
+		ShiftName='General Shift' and
+		@Time between TimeIn and TimeOut
+		end
+		else 
+		select @shiftname=ShiftName from Newshift where ShiftName not in ('General Shift','Unit 1 General Shift') and
+		@Time between TimeIn and TimeOut
+
+
+		return @shiftname
+end
