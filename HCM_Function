@@ -28,3 +28,75 @@ declare @TimeOut2 int=(select TimeOut from Newshift where ShiftName='General Shi
 
 		return @shiftname
 end
+----------------------------------------------
+
+ALTER   FUNCTION [dbo].[fPay_GetDataDisTiming201to630](@xml XML=NULL)
+returns DECIMAL(18, 2)
+  BEGIN
+declare @starttime bigint=917760
+declare @endtime bigint=1179648
+declare @result int=0
+declare @amount int=40
+declare @empid int=0
+declare @basic int=0
+declare @inc int=1
+declare @rest int=0
+declare @late int=0
+declare @payrollendday int=0
+declare @finalamount int=0
+declare @payrollstartdate bigint=0
+declare @payrollenddate bigint=0
+DECLARE @payfreq int=
+              @xml.value('(PayrollData/iPayFrequencyPeriodId)[1]', 'int')
+Select @empid=@xml.value('(PayrollData/iEmpId)[1]', 'int')
+
+select @payrollstartdate=dFromDate,
+	@payrollenddate=dToDate, 
+	@payrollendday=datediff(day,dbo.IntToDate(dFromDate),dbo.IntToDate(dToDate)+1)
+	from vPay_PayFrequency_Period  
+	where 
+			iPayFrequencyPeriodId=@payfreq
+
+select @result=count(dTimeOut) 
+from tuPay_SwipeCard_Details 
+where 
+		dTimeOut between @starttime and 
+		@endtime
+		and iEmpId=@empid 
+		and 
+		dDateIn between @payrollstartdate and @payrollenddate
+
+
+
+ if(@result>0 and @result%3=0)
+			begin
+				select @late=@result/3
+					select @basic=fEarningInputValue from muPay_Employee_Earnings_Details where iMasterId=@empid and iEarningComponentId=19
+					select @basic=@basic*1/@payrollendday
+					select @amount=@basic/2
+					select @finalamount=@amount*@late
+			end
+				else if(@result>0 and @result%3<>0)
+		begin
+			while(@inc<=@result)
+			begin
+					if(@inc%3=0)
+					begin
+						select @late=@late+1
+					end
+					select @inc=@inc+1
+			end
+			select @basic=fEarningInputValue from muPay_Employee_Earnings_Details where iMasterId=@empid and iEarningComponentId=19
+			select @basic=@basic*1/@payrollendday
+			select @basic=@basic/2
+				
+				select @rest=@result-@late*3
+				Select @finalamount=(@basic*@late)+(@amount*@rest)
+
+
+				
+		end
+
+
+		return @finalamount
+end
