@@ -100,3 +100,53 @@ where
 
 		return @finalamount
 end
+---------------------------------------------------------------------
+alter FUNCTION [dbo].[fPay_GetDataBonus](@xml XML=NULL)
+returns DECIMAL(18,2)
+  BEGIN
+declare @basic decimal(18,2) = 8800.00
+declare @basic1 decimal(18,2) = 12.00
+select @basic = @basic/@basic1
+
+declare @employeeJoinMonth int = 0
+declare @empJoinYear int = 0
+declare @result decimal(18,2) = 0
+DECLARE @payfreq int=
+              @xml.value('(PayrollData/iPayFrequencyPeriodId)[1]', 'int')
+
+declare @payrollFromdate int=0
+declare @payrollEndDate int=0
+
+select @payrollFromdate=dFromDate,
+	@payrollEndDate=dToDate
+	from vPay_PayFrequency_Period  
+	where 
+			iPayFrequencyPeriodId=@payfreq
+
+declare @empid int =@xml.value('(PayrollData/iEmpId)[1]', 'int')
+declare @payrollMonth int =0
+declare @payrollYear int =0
+
+select @employeeJoinMonth=month(dbo.IntToDate(dDateofJoining)),@empJoinYear=year(dbo.IntToDate(dDateofJoining)) from vPay_Employee where iMasterId =@empid
+
+select @payrollMonth=month(dbo.IntToDate(@payrollFromdate))
+select @payrollYear=Year(dbo.IntToDate(@payrollFromdate))
+
+
+if(@employeeJoinMonth<=@payrollMonth and @payrollYear = @empJoinYear and @payrollMonth=3)
+begin
+select @result = ((@payrollMonth-@employeeJoinMonth)+1)*@basic
+end
+
+else if(@payrollMonth=3)
+
+begin
+select @result=8800
+end
+
+else
+begin
+select @result=0
+end
+return @result
+end
